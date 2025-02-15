@@ -240,7 +240,7 @@ intro
 
 .intro-banner:after {
   content: '';
-  background-image: url(../images/services-right-dec.jpg);
+  background-image: url(../images/cover\ page.png);
   background-repeat: no-repeat;
   position: absolute;
   left: 0;
@@ -995,7 +995,7 @@ Banner Style
 
 .main-banner:after {
   content: '';
-  background-image: url(../images/services-right-dec.jpg);
+  background-image: url(../images/cover\ page.png);
   background-repeat: no-repeat;
   position: absolute;
   left: 0;
@@ -1337,7 +1337,7 @@ Services Style
 
 .services:before {
   content: '';
-  background-image: url(../images/services-right-dec.jpg);
+  background-image: url(../images/page.png);
   background-repeat: no-repeat;
   position: absolute;
   right: 0;
