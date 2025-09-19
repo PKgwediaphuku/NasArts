@@ -91,6 +91,18 @@ $.fn.extend({
 });
 
 // selectors
+// Helper for safely escaping CSS attribute values (CSS.escape polyfill)
+function cssEscape(value) {
+	if (window.CSS && window.CSS.escape) {
+		return window.CSS.escape(value);
+	}
+	// Polyfill for CSS.escape (see https://github.com/mathiasbynens/CSS.escape)
+	return String(value).replace(/[\0-\x1F\x7F-\uFFFF]/g, function(ch, asCodePoint) {
+		var hex = ch.charCodeAt(0).toString(16);
+		return "\\" + hex + " ";
+	}).replace(/[\x22\x27\x5C]/g, '\\$&');
+}
+
 function focusable( element, isTabIndexNotNaN ) {
 	var map, mapName, img,
 		nodeName = element.nodeName.toLowerCase();
@@ -100,7 +112,7 @@ function focusable( element, isTabIndexNotNaN ) {
 		if ( !element.href || !mapName || map.nodeName.toLowerCase() !== "map" ) {
 			return false;
 		}
-		img = $( "img[usemap='#" + mapName + "']" )[ 0 ];
+		img = $( "img[usemap='#" + cssEscape(mapName) + "']" )[ 0 ];
 		return !!img && visible( img );
 	}
 	return ( /input|select|textarea|button|object/.test( nodeName ) ?
