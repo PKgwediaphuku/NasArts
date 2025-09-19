@@ -1434,16 +1434,34 @@
 	 * @todo Replace by a more generic approach
 	 * @protected
 	 */
+	// Helper to validate src values for images, allowing only http(s): and relative URLs
+	function isSafeImageSrc(url) {
+		if (!url) return false;
+		// Deny javascript: and data: URLs; allow only http, https, and relative URLs
+		return /^((https?:)?\/\/|\.?\/)?[^"']+$/.test(url) && !/^javascript:/i.test(url) && !/^data:/i.test(url);
+	}
+
 	Owl.prototype.preloadAutoWidthImages = function(images) {
 		images.each($.proxy(function(i, element) {
 			this.enter('pre-loading');
 			element = $(element);
+			// find the first safe url in priority order
+			var candidateSrc =
+				isSafeImageSrc(element.attr('src')) ? element.attr('src') :
+				isSafeImageSrc(element.attr('data-src')) ? element.attr('data-src') :
+				isSafeImageSrc(element.attr('data-src-retina')) ? element.attr('data-src-retina') :
+				null;
+			if (!candidateSrc) {
+				this.leave('pre-loading');
+				return; // skip preloading if no safe src found
+			}
 			$(new Image()).one('load', $.proxy(function(e) {
 				element.attr('src', e.target.src);
 				element.css('opacity', 1);
 				this.leave('pre-loading');
 				!this.is('pre-loading') && !this.is('initializing') && this.refresh();
-			}, this)).attr('src', element.attr('src') || element.attr('data-src') || element.attr('data-src-retina'));
+			}, this))
+			.attr('src', candidateSrc);
 		}, this));
 	};
 
