@@ -7110,7 +7110,7 @@ $.widget("ui.resizable", $.ui.mouse, {
 
 				handle = $.trim(n[i]);
 				hname = "ui-resizable-" + handle;
-				axis = $("<div class='ui-resizable-handle " + hname + "'></div>");
+				axis = $("<div>").addClass("ui-resizable-handle").addClass(hname);
 
 				axis.css({ zIndex: o.zIndex });
 
