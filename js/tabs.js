@@ -3929,6 +3929,9 @@ $.extend(Datepicker.prototype, {
 	 * @param  settings  object - the new settings to use for this date picker instance (anonymous)
 	 */
 	_attachDatepicker: function(target, settings) {
+		// SECURITY WARNING:
+		// Any values in 'settings' coming from user input (e.g., selectors or HTML) MUST be sanitized by the client.
+		// Do not pass untrusted strings as selector options in 'settings' unless you have ensured they do not start with '<' or otherwise cause jQuery to interpret as HTML.
 		var nodeName, inline, inst;
 		nodeName = target.nodeName.toLowerCase();
 		inline = (nodeName === "div" || nodeName === "span");
@@ -5792,8 +5795,15 @@ function datepicker_extendRemove(target, props) {
 
 /* Invoke the datepicker functionality.
    @param  options  string - a command, optionally followed by additional parameters or
-					Object - settings for attaching new datepicker functionality
-   @return  jQuery object */
+					Object - settings for attaching new datepicker functionality.
+   @return  jQuery object
+
+   SECURITY NOTE:
+   If you allow user-provided data to flow into plugin options, such as selectors or command strings, be sure to sanitize
+   these values before passing to the plugin. Do NOT pass untrusted user input (e.g., URL parameters) directly as selectors,
+   as this can lead to document.write or XSS issues if interpreted as HTML. Only use safe CSS selectors and never HTML fragments
+   unless that is explicitly intended, and sanitize any dynamic values.
+*/
 $.fn.datepicker = function(options){
 
 	/* Verify an empty collection wasn't passed - Fixes #6976 */
