@@ -124,7 +124,17 @@ function focusable( element, isTabIndexNotNaN ) {
 		visible( element );
 }
 
+/**
+ * Determine if an element is visible.
+ * @param {Element} element - Must be a DOM Element, NOT a selector string.
+ * @returns {boolean}
+ * SECURITY: Do not pass user-controlled strings; ensure element is a real DOM Element.
+ */
 function visible( element ) {
+	if (typeof element !== "object" || !element.nodeType) {
+		// Prevent XSS: Accept only actual DOM elements
+		throw new Error("visible() expects a DOM Element, not a selector string.");
+	}
 	return $.expr.filters.visible( element ) &&
 		!$( element ).parents().addBack().filter(function() {
 			return $.css( this, "visibility" ) === "hidden";
@@ -5790,10 +5800,14 @@ function datepicker_extendRemove(target, props) {
 	return target;
 }
 
-/* Invoke the datepicker functionality.
-   @param  options  string - a command, optionally followed by additional parameters or
-					Object - settings for attaching new datepicker functionality
-   @return  jQuery object */
+/**
+ * Invoke the datepicker functionality.
+ * @param {string|Object} options - If string: command, optionally followed by parameters.
+ *     If object: settings for new datepicker instance.
+ *     SECURITY: Do NOT supply any selector options starting with '<' (HTML); options that are used as selectors should
+ *     be valid CSS selectors only. The caller is responsible for ensuring options are sanitized and not user-supplied HTML.
+ * @return jQuery object
+ */
 $.fn.datepicker = function(options){
 
 	/* Verify an empty collection wasn't passed - Fixes #6976 */
