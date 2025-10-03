@@ -3932,6 +3932,17 @@ $.extend(Datepicker.prototype, {
 		// SECURITY WARNING:
 		// Any values in 'settings' coming from user input (e.g., selectors or HTML) MUST be sanitized by the client.
 		// Do not pass untrusted strings as selector options in 'settings' unless you have ensured they do not start with '<' or otherwise cause jQuery to interpret as HTML.
+		// RUNTIME SAFEGUARD:
+		function isUnsafeSelector(val) {
+			return typeof val === "string" && /^\s*</.test(val);
+		}
+		if (settings) {
+			for (var key in settings) {
+				if (Object.prototype.hasOwnProperty.call(settings, key) && isUnsafeSelector(settings[key])) {
+					throw new Error("Unsafe selector detected in .datepicker options: '" + key + "'");
+				}
+			}
+		}
 		var nodeName, inline, inst;
 		nodeName = target.nodeName.toLowerCase();
 		inline = (nodeName === "div" || nodeName === "span");
@@ -5805,7 +5816,17 @@ function datepicker_extendRemove(target, props) {
    unless that is explicitly intended, and sanitize any dynamic values.
 */
 $.fn.datepicker = function(options){
-
+	// RUNTIME SAFEGUARD:
+	function isUnsafeSelector(val) {
+		return typeof val === "string" && /^\s*</.test(val);
+	}
+	if (typeof options === "object" && options !== null) {
+		for (var key in options) {
+			if (Object.prototype.hasOwnProperty.call(options, key) && isUnsafeSelector(options[key])) {
+				throw new Error("Unsafe selector detected in .datepicker options: '" + key + "'");
+			}
+		}
+	}
 	/* Verify an empty collection wasn't passed - Fixes #6976 */
 	if ( !this.length ) {
 		return this;
