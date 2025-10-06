@@ -1441,19 +1441,23 @@
 			// Unsafe schemes blacklist.
 			var prohibited = /^(?:\s*javascript\s*:|\s*data\s*:|\s*vbscript\s*:|\s*-moz-binding\s*:)/i;
 			if (prohibited.test(url)) { return false; }
-			// decode html entities and URI-encoding, and retest
-			var norm = url.replace(/[\s\u0000-\u001F\u007F]+/g, ''); // Remove spaces/control chars
-			var decoded = norm.replace(/&[#\w\d]+;/g, '');          // Remove any HTML entities
-			try { decoded = decodeURIComponent(decoded); } catch (ex) {}
-			if (prohibited.test(decoded)) { return false; }
-			// Use the browser's URL parser where possible to validate protocol
-			var a = document.createElement('a');
-			a.href = url;
+			// Remove spaces/control chars, then decode URI
+			var norm = url.replace(/[\s\u0000-\u001F\u007F]+/g, '');
+			try { norm = decodeURIComponent(norm); } catch (ex) {}
+			if (prohibited.test(norm)) { return false; }
+			// Only allow safe protocols (http/https/relative), validate strictly BEFORE DOM assignment
 			var safeProtocols = ['http:', 'https:', ''];
+			var matches = norm.match(/^(https?:)?(\/\/)?([./a-zA-Z0-9_\-%?=&]+)$/);
+			if (!matches) { return false; }
+			// If protocol present, it must be http or https
+			if (matches[1] && safeProtocols.indexOf(matches[1] + ':') === -1 && safeProtocols.indexOf(matches[1]) === -1) { return false; }
+			// Ban anything with "script:" anywhere
+			if (/script:/i.test(norm)) { return false; }
+			// Now safe to assign to anchor for further parsing
+			var a = document.createElement('a');
+			a.href = norm;
 			if (a.protocol && safeProtocols.indexOf(a.protocol) === -1) { return false; }
-			// Finally, allow only http/https/relative URLs, and ban urls containing "script:"
-			if (/script:/i.test(decoded)) { return false; }
-			return /^([./a-zA-Z0-9_\-%?=&]+)$/.test(url);
+			return true;
 		} catch (e) {
 			return false;
 		}
