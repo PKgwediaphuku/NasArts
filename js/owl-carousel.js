@@ -1436,27 +1436,41 @@
 	 */
 	// Helper to validate src values for images, allowing only http(s): and relative URLs
 	function isSafeImageSrc(url) {
-		if (!url) return false;
+		if (!url) {
+		 return false;
+		}
 		try {
-			// Unsafe schemes blacklist.
-			var prohibited = /^(?:\s*javascript\s*:|\s*data\s*:|\s*vbscript\s*:|\s*-moz-binding\s*:)/i;
-			if (prohibited.test(url)) { return false; }
-			// Remove spaces/control chars, then decode URI
-			var norm = url.replace(/[\s\u0000-\u001F\u007F]+/g, '');
-			try { norm = decodeURIComponent(norm); } catch (ex) {}
-			if (prohibited.test(norm)) { return false; }
-			// Only allow safe protocols (http/https/relative), validate strictly BEFORE DOM assignment
-			var safeProtocols = ['http:', 'https:', ''];
-			var matches = norm.match(/^(https?:)?(\/\/)?([./a-zA-Z0-9_\-%?=&]+)$/);
-			if (!matches) { return false; }
-			// If protocol present, it must be http or https
-			if (matches[1] && safeProtocols.indexOf(matches[1] + ':') === -1 && safeProtocols.indexOf(matches[1]) === -1) { return false; }
-			// Ban anything with "script:" anywhere
-			if (/script:/i.test(norm)) { return false; }
-			// Now safe to assign to anchor for further parsing
+			// Normalize by removing whitespace/control chars
+			var norm = String(url).replace(/[\s\u0000-\u001F\u007F]+/g, '');
+
+			// Quickly reject obviously dangerous schemes before decoding
+			var prohibited = /^(?:javascript:|data:|vbscript:|-moz-binding:)/i;
+			if (prohibited.test(norm)) {
+				return false;
+			}
+
+			// Attempt to decode URI components and re-check
+			try {
+				norm = decodeURIComponent(norm);
+			} catch (ex) {
+				// ignore decoding errors, keep original norm
+			}
+			if (prohibited.test(norm)) {
+				return false;
+			}
+
+			// Disallow any occurrence of "script:" after normalization
+			if (/script:/i.test(norm)) {
+				return false;
+			}
+
+			// Only allow http, https or relative URLs
 			var a = document.createElement('a');
 			a.href = norm;
-			if (a.protocol && safeProtocols.indexOf(a.protocol) === -1) { return false; }
+			var protocol = a.protocol; // includes the trailing ":" when present
+			if (protocol && protocol !== 'http:' && protocol !== 'https:') {
+				return false;
+			}
 			return true;
 		} catch (e) {
 			return false;
